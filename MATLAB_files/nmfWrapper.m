@@ -8,18 +8,20 @@ close all;
 
 %% Input and target audio
 
-audio_file_path = 'Audio_files/';
+addpath('../Audio_files/inputs/');
+% audio_file_path = 'Audio_files/';
 
-[audio_in, fs_in] = audioread(strcat(audio_file_path,'test_audio.wav'));
+[audio_in, fs_in] = audioread('test_audio.wav');
 audio_in = mean(audio_in,2);
 
-[audio_target, fs_target] = audioread(strcat(audio_file_path,'test_audio.wav'));
+[audio_target, fs_target] = audioread('test_audio.wav');
 audio_target = mean(audio_target,2);
+rmpath('../Audio_files/inputs/');
 
 %% Accessing toolbox directory
 
 % NOTE: Input to toolbox function is the file path, not the audio
-addpath('NmfDrumToolbox-master/src/');
+addpath('../NmfDrumToolbox-master/src/');
  
 %% Initialization: Loading param structure and selecting NMF method
 load DefaultSetting.mat
@@ -92,6 +94,7 @@ elseif strcmp(method, 'NmfD')
     [P_tar, G_tar, err_tar] = NmfD(X, param.WD, param.maxIter, 10);         
 
 end
+rmpath('../NmfDrumToolbox-master/src/');
 
 %% Reconstructing signal
 
@@ -103,7 +106,11 @@ phaseX_out = phaseX_in;
 X_complex = X_out.*exp(1i*phaseX_out);
 
 audio_out = myInverseFFT(X_complex, param.windowSize, param.hopSize);
-% soundsc(audio_out, fs_in);
+
+file_outpath = '../Audio_files/outputs/';
+filename = 'example.wav';
+fs_out = fs_in;
+audiowrite(strcat(file_outpath,filename), audio_out, fs_out);
+% soundsc(audio_out, fs_out);
 
 % [hh, bd, sd] = NmfDrum(strcat(audio_file_path,'test_audio.wav'), 'NmfD');
-rmpath('NmfDrumToolbox-master/src/');
