@@ -8,12 +8,16 @@ close all;
 
 %% Input and target audio
 
+% Storing current random generator settings to keep same seed throughout
+% the program for NMF computation, etc.
+s = rng;
+
 fprintf('Reading audio files');
 
 addpath('../Audio_files/inputs/created_loops');
 % audio_file_path = 'Audio_files/';
 
-[audio_in, fs_in] = audioread('loop1.wav');
+[audio_in, fs_in] = audioread('loop4.wav');
 audio_in = mean(audio_in,2);
 
 [audio_target, fs_target] = audioread('loop1.wav');
@@ -33,13 +37,14 @@ addpath('../NmfDrumToolbox-master/src/');
 load DefaultSetting.mat
 % method = 'Nmf';
 % method = 'PfNmf';
-method = 'Am1';
-% method = 'Am2';
+% method = 'Am1';
+method = 'Am2';
 % method = 'SaNmf';
 % method = 'NmfD';
 fprintf('Selected method is %s\n', method);
 
-param.rh = 1;
+param.rh = 0;
+param.lambda = 0.01;
 
 %% INPUT RHYTHM: Selecting NMF computation based on given method
 
@@ -56,15 +61,15 @@ if strcmp(method, 'Nmf')
     [WD_in, HD_in, WH_in, HH_in, err_in] = PfNmf(X, param.WD, [], [], [], param.rh, param.sparsity);
     
 elseif strcmp(method, 'PfNmf')
-    [WD_in, HD_in, WH_in, HH_in, err_in] = PfNmf(X, param.WD, [], [], [], param.rh, param.sparsity);
+    [WD_in, HD_in, WH_in, HH_in, err_in] = PfNmf(X, param.WD, [], [], [], param.rh, param.sparsity, s);
     
 elseif strcmp(method, 'Am1')
     [WD_in, HD_in, WH_in, HH_in, itererr_in] = Am1(X, param.WD, param.rh, param.rhoThreshold...
-        , param.maxIter, param.sparsity);
+        , param.maxIter, param.sparsity, s);
     
 elseif strcmp(method, 'Am2')
     [WD_in, HD_in, WH_in, HH_in, itererr_in] = Am2(X, param.WD, param.maxIter, param.rh,...
-        param.sparsity);
+        param.sparsity,s);
       
 elseif strcmp(method, 'SaNmf')
     [B_in, G_in, err_in] = SaNmf(X, param.WD, param.maxIter, 4);      
@@ -91,15 +96,15 @@ if strcmp(method, 'Nmf')
     [WD_tar, HD_tar, WH_tar, HH_tar, err_tar] = PfNmf(X, param.WD, [], [], [], param.rh, param.sparsity);
     
 elseif strcmp(method, 'PfNmf')
-    [WD_tar, HD_tar, WH_tar, HH_tar, err_tar] = PfNmf(X, param.WD, [], [], [], param.rh, param.sparsity);
+    [WD_tar, HD_tar, WH_tar, HH_tar, err_tar] = PfNmf(X, param.WD, [], [], [], param.rh, param.sparsity, s);
     
 elseif strcmp(method, 'Am1')
     [WD_tar, HD_tar, WH_tar, HH_tar, itererr_tar] = Am1(X, param.WD, param.rh, param.rhoThreshold...
-        , param.maxIter, param.sparsity);
+        , param.maxIter, param.sparsity, s);
     
 elseif strcmp(method, 'Am2')
     [WD_tar, HD_tar, WH_tar, HH_tar, itererr_tar] = Am2(X, param.WD, param.maxIter, param.rh,...
-        param.sparsity);
+        param.sparsity,s);
       
 elseif strcmp(method, 'SaNmf')
     [B_tar, G_tar, err_tar] = SaNmf(X, param.WD, param.maxIter, 4);      
@@ -123,13 +128,17 @@ quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, HD_tar, fs
 feature_vector1 = [quantized_onsets_in(:,1) ; quantized_onsets_in(:,2) ; quantized_onsets_in(:,3)];
 feature_vector2 = [quantized_onsets_tar(:,1) ; quantized_onsets_tar(:,2) ; quantized_onsets_tar(:,3)];
 
+feature_vector1(feature_vector1>0) = 1;
+feature_vector2(feature_vector2>0) = 1;
+
 fprintf('...done\n');
 
 %% Similarity measure 
 
 fprintf('Applying similarity measure\n');
 
-measure = 'swap';
+% measure = 'swap';
+measure = 'directed_swap';
 similarity_value = similarityMeasure(feature_vector1, feature_vector2, measure);
 fprintf('Similarity value is %f', similarity_value);
 
@@ -137,7 +146,8 @@ fprintf('...done\n');
 
 %% Process input activation matrix
 
-
+new_HD_in = activationProcessing(HD_in);
+HD_in = new_HD_in;
 
 %% Reconstructing signal
 
@@ -145,6 +155,10 @@ fprintf('Reconstructing signal');
 
 % HD_tar = HD_tar.*0;
 % WD_in = WD_in.*0;
+% HD_in([1,3],:) = 0;
+% HD_in([2,3],:) = 0;
+% HD_in([1,2],:) = 0;
+% HH_in(:,:) = 0;
 
 % New spectrogram and phase
 W_complete = [WD_in WH_in];
@@ -160,108 +174,109 @@ fprintf('...done\n');
 file_outpath = '../Audio_files/outputs/';
 filename = 'example.wav';
 fs_out = fs_in;
+audio_out = audio_out ./ max(abs(audio_out));
 % audiowrite(strcat(file_outpath,filename), audio_out, fs_out);
 % soundsc(audio_out, fs_out);
 
 %% Plotting section
 
-% Plot input harmonic templates
+% % Plot input harmonic templates
+% % figure;
+% % plot(WH_in);
+% % title('Input harmonic templates');
+% 
+% % Plot input drum templates
+% % figure;
+% % subplot(311);
+% % plot(WD_in(:,1));
+% % title('Input drum templates');
+% % xlabel('blocks');
+% % ylabel('HH');
+% % subplot(312);
+% % plot(WD_in(:,2));
+% % xlabel('blocks');
+% % ylabel('BD');
+% % subplot(313);
+% % plot(WD_in(:,3));
+% % xlabel('blocks');
+% % ylabel('SD');
+% 
+% % Plot input harmonic activations
 % figure;
-% plot(WH_in);
-% title('Input harmonic templates');
-
-% Plot input drum templates
+% plot(HH_in);
+% title('Input harmonic activations');
+% 
+% % Plot input drum activations
 % figure;
 % subplot(311);
-% plot(WD_in(:,1));
-% title('Input drum templates');
+% plot(HD_in(1,:));
+% title('Input drum activations');
 % xlabel('blocks');
 % ylabel('HH');
 % subplot(312);
-% plot(WD_in(:,2));
+% plot(HD_in(2,:));
 % xlabel('blocks');
 % ylabel('BD');
 % subplot(313);
-% plot(WD_in(:,3));
+% plot(HD_in(3,:));
 % xlabel('blocks');
 % ylabel('SD');
-
-% Plot input harmonic activations
-figure;
-plot(HH_in);
-title('Input harmonic activations');
-
-% Plot input drum activations
-figure;
-subplot(311);
-plot(HD_in(1,:));
-title('Input drum activations');
-xlabel('blocks');
-ylabel('HH');
-subplot(312);
-plot(HD_in(2,:));
-xlabel('blocks');
-ylabel('BD');
-subplot(313);
-plot(HD_in(3,:));
-xlabel('blocks');
-ylabel('SD');
-
-
-% Plot target harmonic templates
+% 
+% 
+% % Plot target harmonic templates
+% % figure;
+% % plot(WH_tar);
+% % title('Target harmonic templates');
+% 
+% % Plot target drum templates
+% % figure;
+% % subplot(311);
+% % plot(WD_tar(:,1));
+% % title('Target drum templates');
+% % xlabel('blocks');
+% % ylabel('HH');
+% % subplot(312);
+% % plot(WD_tar(:,2));
+% % xlabel('blocks');
+% % ylabel('BD');
+% % subplot(313);
+% % plot(WD_tar(:,3));
+% % xlabel('blocks');
+% % ylabel('SD');
+% 
+% % Plot target harmonic activations
 % figure;
-% plot(WH_tar);
-% title('Target harmonic templates');
-
-% Plot target drum templates
+% plot(HH_tar);
+% title('Target harmonic activations');
+% 
+% % Plot target drum activations
 % figure;
 % subplot(311);
-% plot(WD_tar(:,1));
-% title('Target drum templates');
+% plot(HD_tar(1,:));
+% title('Target drum activations');
 % xlabel('blocks');
 % ylabel('HH');
 % subplot(312);
-% plot(WD_tar(:,2));
+% plot(HD_tar(2,:));
 % xlabel('blocks');
 % ylabel('BD');
 % subplot(313);
-% plot(WD_tar(:,3));
+% plot(HD_tar(3,:));
 % xlabel('blocks');
 % ylabel('SD');
-
-% Plot target harmonic activations
-figure;
-plot(HH_tar);
-title('Target harmonic activations');
-
-% Plot target drum activations
-figure;
-subplot(311);
-plot(HD_tar(1,:));
-title('Target drum activations');
-xlabel('blocks');
-ylabel('HH');
-subplot(312);
-plot(HD_tar(2,:));
-xlabel('blocks');
-ylabel('BD');
-subplot(313);
-plot(HD_tar(3,:));
-xlabel('blocks');
-ylabel('SD');
-
-
-% Plot feature vectors
-figure;
-subplot(211);
-stem(feature_vector1);
-title('Feature vectors');
-ylabel('Input');
-subplot(212);
-stem(feature_vector2);
-ylabel('Target');
-
-% Input activations with onsets
+% 
+% 
+% % Plot feature vectors
+% figure;
+% subplot(211);
+% stem(feature_vector1);
+% title('Feature vectors');
+% ylabel('Input');
+% subplot(212);
+% stem(feature_vector2);
+% ylabel('Target');
+% 
+% % Input activations with onsets
 figure;
 subplot(611);
 plot(HD_in(1,:)); axis tight;
@@ -282,8 +297,8 @@ xlabel('blocks');
 ylabel('SD');
 subplot(616);
 stem(quantized_onsets_in(:,3)); axis tight;
-
-% Target activations with onsets
+% 
+% % Target activations with onsets
 figure;
 subplot(611);
 plot(HD_tar(1,:)); axis tight;

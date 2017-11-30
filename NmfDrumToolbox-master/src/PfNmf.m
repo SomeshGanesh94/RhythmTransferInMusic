@@ -24,7 +24,7 @@
 % CW @ GTCMT 2015
 
 
-function [WD, HD, WH, HH, err] = PfNmf(X, WD, HD, WH, HH, rh, sparsity)
+function [WD, HD, WH, HH, err] = PfNmf(X, WD, HD, WH, HH, rh, sparsity,s)
 
 X = X + realmin; %make sure there's no zero frame
 [numFreqX, numFrames] = size(X);
@@ -39,6 +39,7 @@ HH_update = 0;
 if ~isempty(WH)
     [numFreqH, rh] = size(WH);
 else
+    rng(s);
     WH = rand(numFreqD, rh);
     [numFreqH, ~] = size(WH);
     WH_update = 1;
@@ -53,12 +54,14 @@ end
 if ~isempty(HD)
     WD_update = 1;
 else
+    rng(s);
     HD = rand(rd, numFrames);
     HD_update = 1;
 end
 
 if ~isempty(HH)
 else
+    rng(s);
     HH = rand(rh, numFrames);
     HH_update = 1;
 end

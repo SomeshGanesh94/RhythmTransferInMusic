@@ -13,7 +13,7 @@
 % 
 % CW @ GTCMT 2015
 
-function [WD_new, WH_new] = TemplateAdaptation(WD, HD, WH, HH, rhoThres, adaptCoef)
+function [WD_new, WH_new] = TemplateAdaptation(WD, HD, WH, HH, rhoThres, adaptCoef, s)
 
 %initialization
 [rd, numFrames] = size(HD);
@@ -30,6 +30,7 @@ for i = 1:rd
             adaptCoef*(WH(:,target)*transpose(rho(i, target))/length(target));
 
         % fill target entries in WH with random numbers
+        rng(s);
         WH_new(:, target) = rand(size(WH, 1), length(target));  
     end 
 end

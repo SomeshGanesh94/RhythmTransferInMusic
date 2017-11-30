@@ -17,7 +17,7 @@
 %
 % CW @ GTCMT 2015
 
-function [WD, HD, WH, HH, iterErr] = Am1(X, WD, rh, rhoThres, maxIter, sparsity)
+function [WD, HD, WH, HH, iterErr] = Am1(X, WD, rh, rhoThres, maxIter, sparsity, s)
 
 iterErr = zeros(maxIter, 1);
 
@@ -25,7 +25,7 @@ for i = 1:maxIter
     %fprintf('%g iteration of template adaptation\n', i);
     
     %//NMF decomposition
-    [WD, HD, WH, HH, err] = PfNmf(X, WD, [], [], [], rh, sparsity);
+    [WD, HD, WH, HH, err] = PfNmf(X, WD, [], [], [], rh, sparsity,s);
        
     %//keep track on error
     iterErr(i) = err(end); 
@@ -40,10 +40,10 @@ for i = 1:maxIter
     
     %//dictionary extraction
     adaptCoef = 1/(2^i); %start from 0.2
-    [WD_new, WH_new] = TemplateAdaptation(WD, HD, WH, HH, rhoThres, adaptCoef);
+    [WD_new, WH_new] = TemplateAdaptation(WD, HD, WH, HH, rhoThres, adaptCoef, s);
     
     %//NMF decomposition
-    [~, ~, ~, ~, err] = PfNmf(X, WD_new, [], WH_new, [], rh, sparsity);
+    [~, ~, ~, ~, err] = PfNmf(X, WD_new, [], WH_new, [], rh, sparsity, s);
       
     %//keep track on error
     iterErr(i) = err(end); 
