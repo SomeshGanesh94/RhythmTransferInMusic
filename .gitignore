@@ -1,3 +1,13 @@
+# Temporary files
 *.m~
+tmp_debug.m
+
+# Audio files
 Audio_files
 Ableton_files
+
+# Toolbox files
+*.tgz
+NmfDrumToolbox-master/
+ltfat/
+phaseret/
