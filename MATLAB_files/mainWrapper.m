@@ -6,6 +6,13 @@ clc;
 clear all;
 close all;
 
+%% Setting up phase retrieval toolbox
+
+% addpath('../ltfat-2.2.0');
+% addpath('../phaseret-0.2.1');
+% ltfatstart;
+% phaseretstart;
+
 %% Input and target audio
 
 % Storing current random generator settings to keep same seed throughout
