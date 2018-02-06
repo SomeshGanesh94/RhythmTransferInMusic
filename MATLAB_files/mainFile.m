@@ -1,4 +1,4 @@
-%% Wrapper for Rhythm transfer
+%% Main file for Rhythm transfer
 % Somesh Ganesh
 % MUSI 7100 Fall 2017
 
@@ -128,16 +128,18 @@ rmpath('../NmfDrumToolbox-master/src/');
 
 fprintf('...done\n');
 
+
+%% Hard thresholding and normalization for a more robust onset detection
+
+fprintf('Performing hard thresholding and normalizing with threshold factor %f', thresh_factor);
+[temp_HD_in, temp_HD_tar] = hardThresholdAndNorm(HD_in, HD_tar, thresh_factor);
+fprintf('...done\n');
+
 %% Onset detection and quantization
 
 fprintf('Performing onset detection to 32 bins on both files');
-
-
-
-[temp_HD_in, temp_HD_tar] = hardThresholdAndNorm(HD_in, HD_tar, thresh_factor);
-
-quantized_onsets_in = onsetDetection(length(audio_in)/fs_in, HD_in, fs_in, param);
-quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, HD_tar, fs_target, param);
+quantized_onsets_in = onsetDetection(length(audio_in)/fs_in, temp_HD_in, fs_in, param);
+quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, temp_HD_tar, fs_target, param);
 
 % Flattening the onsets for each instrument
 feature_vector1 = [quantized_onsets_in(:,1) ; quantized_onsets_in(:,2) ; quantized_onsets_in(:,3)];
