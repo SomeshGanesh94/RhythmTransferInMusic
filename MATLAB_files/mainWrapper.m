@@ -8,10 +8,10 @@ close all;
 
 %% Setting up phase retrieval toolbox
 
-% addpath('../ltfat-2.2.0');
-% addpath('../phaseret-0.2.1');
-% ltfatstart;
-% phaseretstart;
+addpath('../ltfat');
+addpath('../phaseret');
+ltfatstart;
+phaseretstart;
 
 %% Input and target audio
 
@@ -40,7 +40,7 @@ fprintf('...done\n');
 % NOTE: Input to toolbox function is the file path, not the audio
 addpath('../NmfDrumToolbox-master/src/');
  
-%% Initialization: Loading param structure and selecting NMF method
+%% Initialization: Loading param structure and other parameters and selecting NMF method
 load DefaultSetting.mat
 % method = 'Nmf';
 % method = 'PfNmf';
@@ -52,6 +52,10 @@ fprintf('Selected method is %s\n', method);
 
 param.rh = 0;
 param.lambda = 0.01;
+num_of_instr = 3;
+
+% Hard thresholding factor
+thresh_factor = 0.5;
 
 %% INPUT RHYTHM: Selecting NMF computation based on given method
 
@@ -127,6 +131,10 @@ fprintf('...done\n');
 %% Onset detection and quantization
 
 fprintf('Performing onset detection to 32 bins on both files');
+
+
+
+[temp_HD_in, temp_HD_tar] = hardThresholdAndNorm(HD_in, HD_tar, thresh_factor);
 
 quantized_onsets_in = onsetDetection(length(audio_in)/fs_in, HD_in, fs_in, param);
 quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, HD_tar, fs_target, param);
