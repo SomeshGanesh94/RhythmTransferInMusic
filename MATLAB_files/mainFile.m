@@ -141,25 +141,23 @@ fprintf('Performing onset detection to 32 bins on both files');
 quantized_onsets_in = onsetDetection(length(audio_in)/fs_in, temp_HD_in, fs_in, param);
 quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, temp_HD_tar, fs_target, param);
 
-% Flattening the onsets for each instrument
-feature_vector1 = [quantized_onsets_in(:,1) ; quantized_onsets_in(:,2) ; quantized_onsets_in(:,3)];
-feature_vector2 = [quantized_onsets_tar(:,1) ; quantized_onsets_tar(:,2) ; quantized_onsets_tar(:,3)];
-
-feature_vector1(feature_vector1>0) = 1;
-feature_vector2(feature_vector2>0) = 1;
-
 fprintf('...done\n');
 
-%% Similarity measure 
+%% Similarity measure
 
-fprintf('Applying similarity measure\n');
+% fprintf('Applying similarity measure\n');
+% 
+% % measure = 'swap';
+% measure = 'directed_swap';
+% similarity_value = similarityMeasure(quantized_onsets_in, quantized_onsets_tar, measure);
+% fprintf('Similarity value is %f', similarity_value);
+% 
+% fprintf('...done\n');
 
-% measure = 'swap';
-measure = 'directed_swap';
-similarity_value = similarityMeasure(feature_vector1, feature_vector2, measure);
-fprintf('Similarity value is %f', similarity_value);
+%% Produce mappings for input activation to target activation
 
-fprintf('...done\n');
+[offset_vector_in, input_to_target] = inputToTargetMap(quantized_onsets_in, quantized_onsets_tar);
+
 
 %% Process input activation matrix
 
