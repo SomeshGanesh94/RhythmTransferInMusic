@@ -28,14 +28,20 @@ for i = 1 : bins
     
     lower_time_bound = (i-1) * total_time / bins;
     upper_time_bound = i * total_time / bins;
-    quantized_onsets(i,1) = length(onsets1(onsets1 >= lower_time_bound & onsets1 < upper_time_bound));
+    if (length(onsets1(onsets1 >= lower_time_bound & onsets1 < upper_time_bound)) > 0)
+        quantized_onsets(i,1) = 1;
+    end
 
     lower_time_bound = (i-1) * total_time / bins;
     upper_time_bound = i * total_time / bins;
-    quantized_onsets(i,2) = length(onsets2(onsets2 >= lower_time_bound & onsets2 < upper_time_bound));
+    if (length(onsets2(onsets2 >= lower_time_bound & onsets2 < upper_time_bound)) > 0)
+        quantized_onsets(i,2) = 1;
+    end
     
     lower_time_bound = (i-1) * total_time / bins;
     upper_time_bound = i * total_time / bins;
-    quantized_onsets(i,3) = length(onsets3(onsets3 >= lower_time_bound & onsets3 < upper_time_bound));
+    if (length(onsets3(onsets3 >= lower_time_bound & onsets3 < upper_time_bound)) > 0)
+        quantized_onsets(i,3) = 1;
+    end
 
 end
