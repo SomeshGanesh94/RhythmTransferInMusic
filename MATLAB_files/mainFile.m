@@ -161,8 +161,8 @@ fprintf('...done\n');
 
 %% Process input activation matrix
 
-new_HD_in = activationProcessing(HD_in);
-HD_in = new_HD_in;
+new_HD_in = activationProcessing(HD_in, offset_vector_in, input_to_target);
+% HD_in = new_HD_in;
 
 %% Reconstructing signal
 
@@ -177,7 +177,7 @@ fprintf('Reconstructing signal');
 
 % New spectrogram and phase
 W_complete = [WD_in WH_in];
-H_complete = [HD_in; HH_in];
+H_complete = [new_HD_in; HH_in];
 X_out = W_complete * H_complete;
 phaseX_out = phaseX_in;
 X_complex = X_out.*exp(1i*phaseX_out);
@@ -194,6 +194,16 @@ audio_out = audio_out ./ max(abs(audio_out));
 % soundsc(audio_out, fs_out);
 
 %% Plotting section
+
+% All audio
+t = 0:1/fs_out:(length(audio_out)-1)/fs_out;
+t1 = 0:1/fs_out:(length(audio_in)-1)/fs_out;
+figure('Name','Time domain'); subplot(311); plot(t1,audio_in); title('Input audio'); xlabel('Time (seconds)'); ylabel('Amplitude');  axis tight; subplot(312); plot(t1,audio_target); title('Target audio'); xlabel('Time (seconds)'); ylabel('Amplitude');  axis tight; subplot(313); plot(t,audio_out); title('Modified audio'); xlabel('Time (seconds)'); ylabel('Amplitude');  axis tight;
+
+% Activations
+i = 1; figure('Name','Hi-hat'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
+i = 2; figure('Name','Bass drum'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
+i = 3; figure('Name','Snare drum'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
 
 % % Plot input harmonic templates
 % % figure;
@@ -292,45 +302,45 @@ audio_out = audio_out ./ max(abs(audio_out));
 % ylabel('Target');
 % 
 % % Input activations with onsets
-figure;
-subplot(611);
-plot(HD_in(1,:)); axis tight;
-title('Input drum activations');
-xlabel('blocks');
-ylabel('HH');
-subplot(612);
-stem(quantized_onsets_in(:,1)); axis tight;
-subplot(613);
-plot(HD_in(2,:)); axis tight;
-xlabel('blocks');
-ylabel('BD');
-subplot(614);
-stem(quantized_onsets_in(:,2)); axis tight;
-subplot(615);
-plot(HD_in(3,:)); axis tight;
-xlabel('blocks');
-ylabel('SD');
-subplot(616);
-stem(quantized_onsets_in(:,3)); axis tight;
-% 
-% % Target activations with onsets
-figure;
-subplot(611);
-plot(HD_tar(1,:)); axis tight;
-title('Target drum activations');
-xlabel('blocks');
-ylabel('HH');
-subplot(612);
-stem(quantized_onsets_tar(:,1)); axis tight;
-subplot(613);
-plot(HD_tar(2,:)); axis tight;
-xlabel('blocks');
-ylabel('BD');
-subplot(614);
-stem(quantized_onsets_tar(:,2)); axis tight;
-subplot(615);
-plot(HD_tar(3,:)); axis tight;
-xlabel('blocks');
-ylabel('SD');
-subplot(616);
-stem(quantized_onsets_tar(:,3)); axis tight;
+% figure;
+% subplot(611);
+% plot(HD_in(1,:)); axis tight;
+% title('Input drum activations');
+% xlabel('blocks');
+% ylabel('HH');
+% subplot(612);
+% stem(quantized_onsets_in(:,1)); axis tight;
+% subplot(613);
+% plot(HD_in(2,:)); axis tight;
+% xlabel('blocks');
+% ylabel('BD');
+% subplot(614);
+% stem(quantized_onsets_in(:,2)); axis tight;
+% subplot(615);
+% plot(HD_in(3,:)); axis tight;
+% xlabel('blocks');
+% ylabel('SD');
+% subplot(616);
+% stem(quantized_onsets_in(:,3)); axis tight;
+% % 
+% % % Target activations with onsets
+% figure;
+% subplot(611);
+% plot(HD_tar(1,:)); axis tight;
+% title('Target drum activations');
+% xlabel('blocks');
+% ylabel('HH');
+% subplot(612);
+% stem(quantized_onsets_tar(:,1)); axis tight;
+% subplot(613);
+% plot(HD_tar(2,:)); axis tight;
+% xlabel('blocks');
+% ylabel('BD');
+% subplot(614);
+% stem(quantized_onsets_tar(:,2)); axis tight;
+% subplot(615);
+% plot(HD_tar(3,:)); axis tight;
+% xlabel('blocks');
+% ylabel('SD');
+% subplot(616);
+% stem(quantized_onsets_tar(:,3)); axis tight;
