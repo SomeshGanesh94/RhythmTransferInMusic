@@ -22,7 +22,7 @@ for instr = 1 : num_instruments
     target_to_input{instr} = zeros(size(offset_vector_tar{instr}, 1), 1);
     
     % Looping through every onset in the input instrument activation
-    for onset_num = 1 : size(offset_vector_in)
+    for onset_num = 1 : size(offset_vector_in{instr})
         
         diff_with_tar = abs(offset_vector_in{instr}(onset_num) - offset_vector_tar{instr});
         [~, loc] = min(diff_with_tar);
