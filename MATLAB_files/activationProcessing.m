@@ -6,11 +6,13 @@ function new_HD_in = activationProcessing(HD_in, offset_vector_in, input_to_targ
 
 num_instruments = size(HD_in, 1);
 quantization_factor = 32;
-blocks = 10;
+tolerance = 0;
+blocks = 3 * ceil(size(HD_in, 2) / quantization_factor) + tolerance;
 new_HD_in = HD_in;
 
 for instr = 1 : num_instruments
    
+    plot(new_HD_in(instr,:));
     % Initializing temporary shift zones for each instrument
     temp_shift_zones = zeros(size(offset_vector_in{instr}, 1), blocks);
     
@@ -22,8 +24,9 @@ for instr = 1 : num_instruments
         % location
         if input_to_target{instr}(onset_num) ~= offset_vector_in{instr}(onset_num)
             
-            shift_zone_start = floor(offset_vector_in{instr}(onset_num) * size(HD_in, 2) / quantization_factor); 
-            start_idx = shift_zone_start - floor(blocks / 2);
+            shift_zone_start = floor((offset_vector_in{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor); 
+%             end_idx = floor(shift_zone_start);
+            start_idx = shift_zone_start - floor(blocks / 3);
             end_idx = start_idx + blocks - 1;
             
             % Checking for condition when start_idx is less than 1
@@ -42,10 +45,13 @@ for instr = 1 : num_instruments
             
             % Adding 0s to locations FROM where the onsets are shifted
             new_HD_in(instr, start_idx : end_idx) = 0;
+            plot(new_HD_in(instr,:));
             
             % Find locations to shift onset to and shift them
-            final_zone_start = floor(input_to_target{instr}(onset_num) * size(HD_in, 2) / quantization_factor);
-            start_idx = final_zone_start - floor(blocks / 2);
+            final_zone_start = floor((input_to_target{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor);
+%             end_idx = floor(final_zone_start);
+%             start_idx = end_idx + 1 - blocks;
+            start_idx = final_zone_start - floor(blocks / 3);
             end_idx = start_idx + blocks - 1;
             
             % Checking for condition when start_idx is less than 1
@@ -61,6 +67,7 @@ for instr = 1 : num_instruments
                 new_HD_in(instr, start_idx : end_idx) = temp_shift_zones(onset_num, :);
             
             end 
+            plot(new_HD_in(instr,:));
             
         end
         
