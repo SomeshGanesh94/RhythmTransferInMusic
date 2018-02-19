@@ -17,9 +17,8 @@ end
 
 if strcmp(method,'directed_swap')
    
-%     Defining number of sound components, length of each instrument onset vector and distance matrix
-    num_instruments = 3;
-    instrument_length = size(quantized_onsets_in,1) / num_instruments;
+    num_instruments = size(quantized_onsets_in, 2);
+    instrument_length = size(quantized_onsets_in,1);
     dist = zeros(num_instruments, 1);
     
 %     Iterating over each sound component

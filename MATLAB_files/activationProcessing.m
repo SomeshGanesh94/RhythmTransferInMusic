@@ -17,7 +17,7 @@ for instr = 1 : num_instruments
     temp_shift_zones = zeros(size(offset_vector_in{instr}, 1), blocks);
     
     % Iterating over every detected onset in the input to store all the
-    % zones to be shifted and adding 0s to the locations after
+    % zones to be shifted
     for onset_num = 1 : size(offset_vector_in{instr}, 1)
        
         % Checking to see if the onset is not already in the desired
@@ -26,7 +26,7 @@ for instr = 1 : num_instruments
             
             shift_zone_start = floor((offset_vector_in{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor); 
 %             end_idx = floor(shift_zone_start);
-            start_idx = shift_zone_start - floor(blocks / 3);
+            start_idx = shift_zone_start - floor(blocks / 4);
             end_idx = start_idx + blocks - 1;
             
             % Checking for condition when start_idx is less than 1
@@ -43,15 +43,41 @@ for instr = 1 : num_instruments
             
             end
             
-            % Adding 0s to locations FROM where the onsets are shifted
-            new_HD_in(instr, start_idx : end_idx) = 0;
-            plot(new_HD_in(instr,:));
+        end
+        
+    end
+    
+    % Adding 0s to locations FROM where the onsets are shifted
+    for onset_num = 1 : size(offset_vector_in{instr}, 1)
+        
+        if input_to_target{instr}(onset_num) ~= offset_vector_in{instr}(onset_num)
+      
+        shift_zone_start = floor((offset_vector_in{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor); 
+        start_idx = shift_zone_start - floor(blocks / 4);
+        end_idx = start_idx + blocks - 1;
+        
+        if start_idx < 1
             
-            % Find locations to shift onset to and shift them
-            final_zone_start = floor((input_to_target{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor);
+            start_idx = 1;
+            
+        end
+        
+        new_HD_in(instr, start_idx : end_idx) = 0;
+        plot(new_HD_in(instr,:));
+        
+        end
+        
+    end
+    
+    % Find locations to shift onset to and shift them
+    for onset_num = 1 : size(offset_vector_in{instr}, 1)
+        
+        if input_to_target{instr}(onset_num) ~= offset_vector_in{instr}(onset_num)
+        
+        final_zone_start = floor((input_to_target{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor);
 %             end_idx = floor(final_zone_start);
 %             start_idx = end_idx + 1 - blocks;
-            start_idx = final_zone_start - floor(blocks / 3);
+            start_idx = final_zone_start - floor(blocks / 4);
             end_idx = start_idx + blocks - 1;
             
             % Checking for condition when start_idx is less than 1
@@ -67,12 +93,14 @@ for instr = 1 : num_instruments
                 new_HD_in(instr, start_idx : end_idx) = temp_shift_zones(onset_num, :);
             
             end 
+            
+        end
             plot(new_HD_in(instr,:));
+            
+            
+        
+    end
             
         end
         
-    end
-    
-end
-
 end
