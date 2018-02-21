@@ -2,16 +2,21 @@
 % Somesh Ganesh
 % MUSI 7100 Fall 2017
 
-function new_HD_in = activationProcessing(HD_in, offset_vector_in, input_to_target)
+function [new_HD_in, onsets_new_frames, onsets_old_frames] = activationProcessing(HD_in, offset_vector_in, input_to_target)
 
 num_instruments = size(HD_in, 1);
 quantization_factor = 32;
 tolerance = 0;
 blocks = 3 * ceil(size(HD_in, 2) / quantization_factor) + tolerance;
 new_HD_in = HD_in;
+onsets_new_frames = cell(num_instruments, 1);
+onsets_old_frames = cell(num_instruments, 1);
 
 for instr = 1 : num_instruments
    
+    onsets_old_frames{instr} = cell(size(offset_vector_in{instr}));
+    onsets_new_frames{instr} = cell(size(offset_vector_in{instr}));
+    
     plot(new_HD_in(instr,:));
     % Initializing temporary shift zones for each instrument
     temp_shift_zones = zeros(size(offset_vector_in{instr}, 1), blocks);
@@ -42,6 +47,8 @@ for instr = 1 : num_instruments
                 temp_shift_zones(onset_num, :) = HD_in(instr, start_idx : end_idx);
             
             end
+            
+            onsets_old_frames{instr}{onset_num} = [start_idx : end_idx];
             
         end
         
@@ -93,6 +100,8 @@ for instr = 1 : num_instruments
                 new_HD_in(instr, start_idx : end_idx) = temp_shift_zones(onset_num, :);
             
             end 
+            
+            onsets_new_frames{instr}{onset_num} = [start_idx : end_idx];
             
         end
             plot(new_HD_in(instr,:));

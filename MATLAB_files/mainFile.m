@@ -24,10 +24,10 @@ fprintf('Reading audio files');
 addpath('../Audio_files/inputs/created_loops');
 % audio_file_path = 'Audio_files/';
 
-[audio_in, fs_in] = audioread('loop4.wav');
+[audio_in, fs_in] = audioread('mix1.wav');
 audio_in = mean(audio_in,2);
 
-[audio_target, fs_target] = audioread('loop1.wav');
+[audio_target, fs_target] = audioread('mix2.wav');
 audio_target = mean(audio_target,2);
 rmpath('../Audio_files/inputs/created_loops');
 
@@ -50,9 +50,12 @@ method = 'Am2';
 % method = 'NmfD';
 fprintf('Selected method is %s\n', method);
 
-param.rh = 0;
-param.lambda = 0.01;
+param.rh = 1;
+param.lambda = 0.1;
+% param.hopSize = 256;
+% param.maxIter = 100;
 num_of_instr = 3;
+window = 'rect';
 
 % Hard thresholding factor
 thresh_factor = 0.5;
@@ -63,7 +66,8 @@ fprintf('NMF being computed on input file');
 
 % Computing spectrogram
 overlap = param.windowSize - param.hopSize;
-X = spectrogram(audio_in, param.windowSize, overlap, param.windowSize, fs_in);  
+% X = spectrogram(audio_in, blackman(param.windowSize), overlap, param.windowSize, fs_in); 
+[X, len_X] = dgtreal(audio_in, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
 phaseX_in = angle(X);
 X = abs(X);
 
@@ -98,7 +102,8 @@ fprintf('NMF being computed on target file');
 
 % Computing spectrogram
 overlap = param.windowSize - param.hopSize;
-X = spectrogram(audio_target, param.windowSize, overlap, param.windowSize, fs_target); 
+% X = spectrogram(audio_target, blackman(param.windowSize), overlap, param.windowSize, fs_target);
+[X, len_X] = dgtreal(audio_target, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
 phaseX_tar = angle(X);
 X = abs(X);
 
@@ -141,6 +146,8 @@ fprintf('Performing onset detection to 32 bins on both files');
 quantized_onsets_in = onsetDetection(length(audio_in)/fs_in, temp_HD_in, fs_in, param);
 quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, temp_HD_tar, fs_target, param);
 
+
+
 fprintf('...done\n');
 
 %% Similarity measure
@@ -161,8 +168,13 @@ fprintf('...done\n');
 
 %% Process input activation matrix
 
-new_HD_in = activationProcessing(HD_in, offset_vector_in, input_to_target);
-% HD_in = new_HD_in;
+[new_HD_in, onsets_new_frames, onsets_old_frames] = activationProcessing(HD_in, offset_vector_in, input_to_target);
+% new_HD_in = HD_in;
+
+%% Process phase
+
+new_phase = phaseProcessing(phaseX_in, onsets_new_frames, onsets_old_frames);
+
 
 %% Reconstructing signal
 
@@ -177,17 +189,29 @@ fprintf('Reconstructing signal');
 
 % New spectrogram and phase
 W_complete = [WD_in WH_in];
-H_complete = [new_HD_in; HH_in];
+H_complete = [new_HD_in(:, 1 : size(HD_in,2)); HH_in];
 X_out = W_complete * H_complete;
+
+%
+
+% L=dgtlength(Ls,a,M);
+% reX = gla(X_out, {'blackman', param.windowSize}, param.hopSize, param.windowSize, 'timeinv', 'Ls', 81920);
+% 
+% audio_out = idgtreal(reX, {'blackman', param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
+
+phaseX_out = pghi(X_out, param.windowSize, param.hopSize, param.windowSize);
+audio_out = idgtreal(phaseX_out, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
+
 phaseX_out = phaseX_in;
 X_complex = X_out.*exp(1i*phaseX_out);
+audio_out2 = istft(X_complex, param.windowSize, param.windowSize, param.hopSize);
 
-audio_out = myInverseFFT(X_complex, param.windowSize, param.hopSize);
-
+% audio_out = myInverseFFT(X_complex, param.windowSize, param.hopSize);
+% audio_out = ygab;
 fprintf('...done\n');
 
 file_outpath = '../Audio_files/outputs/';
-filename = 'example.wav';
+filename = strcat(window,'example.wav');
 fs_out = fs_in;
 audio_out = audio_out ./ max(abs(audio_out));
 % audiowrite(strcat(file_outpath,filename), audio_out, fs_out);
