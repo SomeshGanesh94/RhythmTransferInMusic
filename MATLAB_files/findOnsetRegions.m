@@ -153,15 +153,81 @@ for region = 1 : size(new_region_idx_cell, 1)
     
 end
 
-same_region_cell = {};
+%% Finding regions for no onsets
+no_onsets = old_onsets + new_onsets;
+no_onsets(no_onsets > 0) = 1;
+no_onsets = 1 - no_onsets;
 
+offset_no_onsets = find(no_onsets);
+prev_idx = offset_no_onsets(1);
+
+if ~isempty(offset_no_onsets)
+
+    region_count = 1;
+    for i = 2 : length(offset_no_onsets)
+        
+        curr_idx = offset_no_onsets(i);
+        if (curr_idx - prev_idx) > 1
+            
+            region_count = region_count + 1;
+            
+        end
+        prev_idx = curr_idx;
+        
+    end
+    
+else
+    
+    region_count = 0;
+    
+end
+
+if ~isempty(offset_no_onsets)
+
+    no_region_idx_cell = cell(region_count, 1);
+    start_idx = 1;
+    prev_idx = offset_no_onsets(1);
+    region = 1;
+    
+    for i = 2 : length(offset_no_onsets)
+       
+        curr_idx = offset_no_onsets(i);
+        if (curr_idx - prev_idx) > 1
+        
+            end_idx = prev_idx;
+            no_region_idx_cell{region} = [start_idx, end_idx];
+            region = region + 1;
+            start_idx = curr_idx;
+            
+        end
+        prev_idx = curr_idx;
+        
+    end
+    end_idx = prev_idx;
+    no_region_idx_cell{region} = [start_idx, end_idx];
+    
+else
+    
+    no_region_idx_cell = {};
+    
+end
+
+no_region_cell = cell(size(no_region_idx_cell));
+for region = 1 : size(no_region_idx_cell, 1)
+
+    start_idx = no_region_idx_cell{region}(1);
+    end_idx = no_region_idx_cell{region}(2);
+    no_region_cell{region} = X(:, start_idx:end_idx);
+    
+end
+
+%% Storing values in a cell
 regionsAndIdx = cell(3,2);
 regionsAndIdx{1,1} = old_region_cell;
 regionsAndIdx{1,2} = old_region_idx_cell;
 regionsAndIdx{2,1} = new_region_cell;
 regionsAndIdx{2,2} = new_region_idx_cell;
-regionsAndIdx{3,1} = same_region_cell;
-regionsAndIdx{3,2} = same_region_idx_cell;
-
+regionsAndIdx{3,1} = no_region_cell;
+regionsAndIdx{3,2} = no_region_idx_cell;
 
 end
