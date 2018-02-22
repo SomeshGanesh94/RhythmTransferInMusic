@@ -1,4 +1,4 @@
-function regions = findOnsetRegions(X, phaseX_in, onsets_new_frames, onsets_old_frames, param)
+function regionsAndIdx = findOnsetRegions(X, phaseX_in, onsets_new_frames, onsets_old_frames, param)
 
 new_phase = phaseX_in;
 
@@ -156,12 +156,12 @@ end
 same_region_cell = {};
 
 regionsAndIdx = cell(3,2);
-regions{1,1} = old_region_cell;
-regions{1,2} = old_region_idx_cell;
-regions{2,1} = new_region_cell;
-regions{2,2} = new_region_idx_cell;
-regions{3,1} = same_region_cell;
-regions{3,2} = same_region_idx_cell;
+regionsAndIdx{1,1} = old_region_cell;
+regionsAndIdx{1,2} = old_region_idx_cell;
+regionsAndIdx{2,1} = new_region_cell;
+regionsAndIdx{2,2} = new_region_idx_cell;
+regionsAndIdx{3,1} = same_region_cell;
+regionsAndIdx{3,2} = same_region_idx_cell;
 
 
 end
