@@ -24,10 +24,10 @@ fprintf('Reading audio files');
 addpath('../Audio_files/inputs/created_loops');
 % audio_file_path = 'Audio_files/';
 
-[audio_in, fs_in] = audioread('mix1.wav');
+[audio_in, fs_in] = audioread('mix5.wav');
 audio_in = mean(audio_in,2);
 
-[audio_target, fs_target] = audioread('mix2.wav');
+[audio_target, fs_target] = audioread('mix6.wav');
 audio_target = mean(audio_target,2);
 rmpath('../Audio_files/inputs/created_loops');
 
@@ -50,12 +50,12 @@ method = 'Am2';
 % method = 'NmfD';
 fprintf('Selected method is %s\n', method);
 
-param.rh = 1;
+param.rh = 2;
 param.lambda = 0.1;
 % param.hopSize = 256;
 % param.maxIter = 100;
 num_of_instr = 3;
-window = 'rect';
+window = 'blackman';
 
 % Hard thresholding factor
 thresh_factor = 0.5;
@@ -66,10 +66,10 @@ fprintf('NMF being computed on input file');
 
 % Computing spectrogram
 overlap = param.windowSize - param.hopSize;
-% X = spectrogram(audio_in, blackman(param.windowSize), overlap, param.windowSize, fs_in); 
-[X, len_X] = dgtreal(audio_in, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
-phaseX_in = angle(X);
-X = abs(X);
+% X_in = spectrogram(audio_in, blackman(param.windowSize), overlap, param.windowSize, fs_in); 
+[X_in, len_X] = dgtreal(audio_in, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
+phaseX_in = angle(X_in);
+X = abs(X_in);
 
 if strcmp(method, 'Nmf')
     param.rh = 0;
@@ -102,10 +102,11 @@ fprintf('NMF being computed on target file');
 
 % Computing spectrogram
 overlap = param.windowSize - param.hopSize;
-% X = spectrogram(audio_target, blackman(param.windowSize), overlap, param.windowSize, fs_target);
-[X, len_X] = dgtreal(audio_target, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
-phaseX_tar = angle(X);
-X = abs(X);
+% X_tar = spectrogram(audio_target, blackman(param.windowSize), overlap, param.windowSize, fs_target);
+% len_X = size(audio_in,1);
+[X_tar, len_X] = dgtreal(audio_target, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
+phaseX_tar = angle(X_tar);
+X = abs(X_tar);
 
 if strcmp(method, 'Nmf')
     param.rh = 0;
@@ -171,11 +172,6 @@ fprintf('...done\n');
 [new_HD_in, onsets_new_frames, onsets_old_frames] = activationProcessing(HD_in, offset_vector_in, input_to_target);
 % new_HD_in = HD_in;
 
-%% Process phase
-
-new_phase = phaseProcessing(phaseX_in, onsets_new_frames, onsets_old_frames);
-
-
 %% Reconstructing signal
 
 fprintf('Reconstructing signal');
@@ -199,12 +195,33 @@ X_out = W_complete * H_complete;
 % 
 % audio_out = idgtreal(reX, {'blackman', param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
 
-phaseX_out = pghi(X_out, param.windowSize, param.hopSize, param.windowSize);
-audio_out = idgtreal(phaseX_out, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
+
+
+%% Process phase
+regionsAndIdx = findOnsetRegions(abs(X_in), phaseX_in, onsets_new_frames, onsets_old_frames, param);
+
+% X_complex = phaseProcessing(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, WD_in);
+% 
+% audio_out_plain = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
+
+X_complex = phaseProcessingNewBin(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, WD_in);
+
+%% 
+
+% phaseX_out = pghi(X_out, param.windowSize, param.hopSize, param.windowSize);
+audio_out_bin = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
+ 
+X_complex = phaseProcessingNewFrame(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, WD_in);
+
+audio_out_frame = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
 phaseX_out = phaseX_in;
+
 X_complex = X_out.*exp(1i*phaseX_out);
-audio_out2 = istft(X_complex, param.windowSize, param.windowSize, param.hopSize);
+
+audio_out = istft(X_complex, param.windowSize, param.windowSize, param.hopSize);
+
+% audio_out = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
 % audio_out = myInverseFFT(X_complex, param.windowSize, param.hopSize);
 % audio_out = ygab;
@@ -224,10 +241,32 @@ t = 0:1/fs_out:(length(audio_out)-1)/fs_out;
 t1 = 0:1/fs_out:(length(audio_in)-1)/fs_out;
 figure('Name','Time domain'); subplot(311); plot(t1,audio_in); title('Input audio'); xlabel('Time (seconds)'); ylabel('Amplitude');  axis tight; subplot(312); plot(t1,audio_target); title('Target audio'); xlabel('Time (seconds)'); ylabel('Amplitude');  axis tight; subplot(313); plot(t,audio_out); title('Modified audio'); xlabel('Time (seconds)'); ylabel('Amplitude');  axis tight;
 
+figure('Name', 'Spectrogram target');
+spectrogram(audio_target, blackman(param.windowSize), overlap, param.windowSize, fs_out, 'yaxis'); 
+ax = caxis;
+
+figure('Name', 'Spectrogram binwise');
+spectrogram(audio_out_bin, blackman(param.windowSize), overlap, param.windowSize, fs_out, 'yaxis'); 
+caxis(ax);
+
+% figure('Name', 'Spectrogram muted');
+% spectrogram(audio_out_plain, blackman(param.windowSize), overlap, param.windowSize, fs_out, 'yaxis'); 
+% caxis(ax);
+
+figure('Name', 'Spectrogram framewise');
+spectrogram(audio_out_frame, blackman(param.windowSize), overlap, param.windowSize, fs_out, 'yaxis'); 
+caxis(ax);
+
+figure('Name', 'Spectrogram inPhase');
+spectrogram(audio_out, hann(param.windowSize), overlap, param.windowSize, fs_out, 'yaxis'); 
+caxis(ax);
+
 % Activations
-i = 1; figure('Name','Hi-hat'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
-i = 2; figure('Name','Bass drum'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
-i = 3; figure('Name','Snare drum'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
+% i = 1; figure('Name','Hi-hat'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
+% i = 2; figure('Name','Bass drum'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
+% i = 3; figure('Name','Snare drum'); subplot(311); plot((HD_in(i,:))./max(abs(HD_in(i,:)))); title('Input activation'); xlabel('Frames'); ylabel('Normalized magnitude'); subplot(312); plot(HD_tar(i,:));xlabel('Frames'); ylabel('Normalized magnitude'); title('Target activation'); subplot(313); plot(new_HD_in(i,:)./max(abs(new_HD_in(i,:)))); title('Processed  activation');xlabel('Frames'); ylabel('Normalized magnitude');
+
+% plotdgtrealphasediff(real(phaseX_in),real(phaseX_tar),X_tar,0.9,param.hopSize,param.windowSize);
 
 % % Plot input harmonic templates
 % % figure;
