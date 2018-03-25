@@ -16,6 +16,14 @@ for instr = 1 : size(onsets_old_frames, 1)
             end_idx = onsets_old_frames{instr}{onset_num}(end);
             old_onsets(start_idx:end_idx) = 1;
             
+        end
+        
+    end
+    
+    for onset_num = 1 : size(onsets_new_frames{instr}, 1)
+   
+        if ~isempty(onsets_new_frames{instr}{onset_num})
+            
             start_idx = onsets_new_frames{instr}{onset_num}(1);
             end_idx = onsets_new_frames{instr}{onset_num}(end);
             new_onsets(start_idx:end_idx) = 1;
@@ -53,7 +61,7 @@ end
 if ~isempty(offset_old_onsets)
 
     old_region_idx_cell = cell(region_count, 1);
-    start_idx = 1;
+    start_idx = offset_old_onsets(1);
     prev_idx = offset_old_onsets(1);
     region = 1;
     
@@ -117,7 +125,7 @@ end
 if ~isempty(offset_new_onsets)
 
     new_region_idx_cell = cell(region_count, 1);
-    start_idx = 1;
+    start_idx = offset_new_onsets(1);
     prev_idx = offset_new_onsets(1);
     region = 1;
     
