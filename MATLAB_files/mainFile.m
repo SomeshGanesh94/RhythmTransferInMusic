@@ -198,7 +198,7 @@ X_out = W_complete * H_complete;
 
 
 %% Process phase
-regionsAndIdx = findOnsetRegions(abs(X_in), phaseX_in, onsets_new_frames, onsets_old_frames, param);
+regionsAndIdx = findOnsetRegions(abs(X_in), X_out, phaseX_in, onsets_new_frames, onsets_old_frames, param);
 
 % X_complex = phaseProcessing(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, WD_in);
 % 
