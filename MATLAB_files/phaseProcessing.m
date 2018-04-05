@@ -46,53 +46,54 @@ end
 %
 % end
 
-% new_indices = [];
-% for instr = 1 : size(HD_in, 1)
-%
-%     new_indices = [new_indices (new_regions_idx_cell{instr}(1):new_regions_idx_cell{instr}(2))];
-%
-% end
-%
-% spec_value= zeros(size(HD_in, 1), 1);
-%
-% for frame_no = 1 : size(X,2)
-%
-%     new_phase_value = zeros(size(phaseX_in, 1), 1);
-%
-%     if ismember(frame_no, new_indices)
-%
-%         for bin_no = 1 : size(WD_in, 1)
-%
-%             for instr = 1 : size(HD_in, 1)
-%
-%                 spec_value(instr) = WD_in(bin_no, instr) * HD_in(instr, frame_no);
-%
-%             end
-%
-%             spec_max_instr = find(spec_value == max(spec_value));
-%
-%             onset_cell = onsets_new_frames{spec_max_instr};
-%             for new_onsets = 1 : size(onset_cell, 1)
-%
-%                 if ismember(frame_no, onset_cell{new_onsets})
-%
-%                     new_onset_loc = find(onset_cell{new_onsets} == frame_no);
-%                     new_to_old_index = [frame_no,bin_no,spec_max_instr,new_onsets,new_onset_loc];
-%
-%                     new_frame_no = onsets_old_frames{spec_max_instr}{new_onsets}(new_onset_loc);
-%                     new_phase_value(bin_no) = phaseX_in(bin_no, new_frame_no);
-%
-%
-%                 end
-%
-%             end
-%
-%         end
-%
-%         X_complex(:, frame_no) = X(:, frame_no).*(exp(1i*new_phase_value));
-%
-%     end
-%
-% end
+new_indices = [];
+for instr = 1 : size(new_regions_idx_cell, 1)
+
+    new_indices = [new_indices (new_regions_idx_cell{instr}(1):new_regions_idx_cell{instr}(2))];
+
+end
+
+spec_value= zeros(size(HD_in, 1), 1);
+
+for frame_no = 1 : size(X,2)
+
+    new_phase_value = zeros(size(phaseX_in, 1), 1);
+
+    if ismember(frame_no, new_indices)
+
+        for bin_no = 1 : size(WD_in, 1)
+
+            for instr = 1 : size(HD_in, 1)
+
+                spec_value(instr) = WD_in(bin_no, instr) * HD_in(instr, frame_no);
+
+            end
+
+            spec_max_instr = find(spec_value == max(spec_value));
+
+            onset_cell = onsets_new_frames{spec_max_instr};
+            for new_onsets = 1 : size(onset_cell, 1)
+
+                if ismember(frame_no, onset_cell{new_onsets})
+
+                    new_onset_loc = find(onset_cell{new_onsets} == frame_no);
+                    new_to_old_index = [frame_no,bin_no,spec_max_instr,new_onsets,new_onset_loc];
+                    
+%                     fprintf('%d %d %d %d %d \n',frame_no, bin_no, spec_max_instr, new_onsets, new_onset_loc);
+                    new_frame_no = onsets_old_frames{spec_max_instr}{new_onsets}(new_onset_loc);
+                    
+                    new_phase_value(bin_no) = phaseX_in(bin_no, new_frame_no);
+
+                end
+
+            end
+
+        end
+
+        X_complex(:, frame_no) = 0;
+
+    end
+
+end
 
 end
