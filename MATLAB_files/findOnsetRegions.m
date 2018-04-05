@@ -1,4 +1,4 @@
-function regionsAndIdx = findOnsetRegions(X, phaseX_in, onsets_new_frames, onsets_old_frames, param)
+function regionsAndIdx = findOnsetRegions(X_in, X_out, phaseX_in, onsets_new_frames, onsets_old_frames, param)
 
 new_phase = phaseX_in;
 
@@ -93,7 +93,7 @@ for region = 1 : size(old_region_idx_cell, 1)
 
     start_idx = old_region_idx_cell{region}(1);
     end_idx = old_region_idx_cell{region}(2);
-    old_region_cell{region} = X(:, start_idx:end_idx);
+    old_region_cell{region} = X_out(:, start_idx:end_idx);
     
 end
 
@@ -157,7 +157,7 @@ for region = 1 : size(new_region_idx_cell, 1)
 
     start_idx = new_region_idx_cell{region}(1);
     end_idx = new_region_idx_cell{region}(2);
-    new_region_cell{region} = X(:, start_idx:end_idx);
+    new_region_cell{region} = X_in(:, start_idx:end_idx);
     
 end
 
@@ -225,7 +225,7 @@ for region = 1 : size(no_region_idx_cell, 1)
 
     start_idx = no_region_idx_cell{region}(1);
     end_idx = no_region_idx_cell{region}(2);
-    no_region_cell{region} = X(:, start_idx:end_idx);
+    no_region_cell{region} = X_out(:, start_idx:end_idx);
     
 end
 
