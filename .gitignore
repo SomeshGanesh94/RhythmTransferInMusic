@@ -1,6 +1,7 @@
 # Temporary files
 *.m~
 tmp_debug.m
+istft.m
 
 # Audio files
 Audio_files
