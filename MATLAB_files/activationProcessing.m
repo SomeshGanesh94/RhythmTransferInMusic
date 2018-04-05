@@ -8,6 +8,7 @@ num_instruments = size(HD_in, 1);
 quantization_factor = 32;
 tolerance = 0;
 blocks = 2 * ceil(size(HD_in, 2) / quantization_factor) + tolerance;
+blockd = 3;
 new_HD_in = HD_in;
 onsets_new_frames = cell(num_instruments, 1);
 onsets_old_frames = cell(num_instruments, 1);
@@ -35,7 +36,7 @@ for instr = 1 : num_instruments
             
             shift_zone_start = floor((offset_vector_in{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor);
             %             end_idx = floor(shift_zone_start);
-            start_idx = shift_zone_start - floor(blocks / 4);
+            start_idx = shift_zone_start - floor(blocks / blockd);
             end_idx = start_idx + blocks - 1;
             
             % Checking for condition when start_idx is less than 1
@@ -64,7 +65,7 @@ for instr = 1 : num_instruments
         if input_to_target{instr}(onset_num) ~= offset_vector_in{instr}(onset_num)
             
             shift_zone_start = floor((offset_vector_in{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor);
-            start_idx = shift_zone_start - floor(blocks / 4);
+            start_idx = shift_zone_start - floor(blocks / blockd);
             end_idx = start_idx + blocks - 1;
             
             if start_idx < 1
@@ -90,7 +91,7 @@ for instr = 1 : num_instruments
         if input_to_target{instr}(onset_num) ~= offset_vector_in{instr}(onset_num)
             
             final_zone_start = floor((input_to_target{instr}(onset_num) - 1) * size(HD_in, 2) / quantization_factor);
-            start_idx = final_zone_start - floor(blocks / 4);
+            start_idx = final_zone_start - floor(blocks / blockd);
             end_idx = start_idx + blocks - 1;
             
             % Checking for condition when start_idx is less than 1
