@@ -35,10 +35,10 @@ for instr = 1 : size(onsets_old_frames, 1)
 end
 %% Finding regions for old onsets
 offset_old_onsets = find(old_onsets);
-prev_idx = offset_old_onsets(1);
 
 if ~isempty(offset_old_onsets)
-
+    prev_idx = offset_old_onsets(1);
+    
     region_count = 1;
     for i = 2 : length(offset_old_onsets)
         
@@ -99,10 +99,10 @@ end
 
 %% Finding regions for new onsets
 offset_new_onsets = find(new_onsets);
-prev_idx = offset_new_onsets(1);
 
 if ~isempty(offset_new_onsets)
-
+    prev_idx = offset_new_onsets(1);
+    
     region_count = 1;
     for i = 2 : length(offset_new_onsets)
         
