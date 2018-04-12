@@ -29,7 +29,7 @@ old_rephase = cell(size(old_region_cell));
 
 for region = 1 : size(old_rephase,1)
     
-    old_rephase{region} = pghi(0.3.*old_region_cell{region}, param.windowSize, param.hopSize, param.windowSize, 'timeinv');
+    old_rephase{region} = pghi(old_region_cell{region}, param.windowSize, param.hopSize, param.windowSize, 'timeinv');
     start_idx = old_region_idx_cell{region}(1);
     end_idx = old_region_idx_cell{region}(2);
     X_complex(:, start_idx:end_idx) = old_rephase{region};
