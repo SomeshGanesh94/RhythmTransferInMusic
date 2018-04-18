@@ -82,7 +82,15 @@ for frame_no = 1 : size(X,2)
             end
             hspec_max_instr = find(hspec_value == max(hspec_value));
             
-            if max(dspec_value) > max(hspec_value)
+            if isempty(hspec_value)
+                flag = 1;
+            elseif max(dspec_value) > max(hspec_value)
+                flag = 1;
+            else
+                flag = 0;
+            end 
+            
+            if flag
                 
                 onset_cell = onsets_new_frames{spec_max_instr};
                 for new_onsets = 1 : size(onset_cell, 1)
