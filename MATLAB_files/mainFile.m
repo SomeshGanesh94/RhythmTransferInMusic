@@ -65,7 +65,7 @@ thresh_factor = 0.8;
 fprintf('NMF being computed on input file');
 
 % Computing spectrogram
-overlap = param.windowSize - param.hopSize;
+% overlap = param.windowSize - param.hopSize;
 % X_in = spectrogram(audio_in, blackman(param.windowSize), overlap, param.windowSize, fs_in); 
 [X_in, len_X] = dgtreal(audio_in, {window, param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
 phaseX_in = angle(X_in);
@@ -149,8 +149,6 @@ fprintf('Performing onset detection to 32 bins on both files');
 quantized_onsets_in = onsetDetection(length(audio_in)/fs_in, temp_HD_in, fs_in, param);
 quantized_onsets_tar = onsetDetection(length(audio_target)/fs_target, temp_HD_tar, fs_target, param);
 
-
-
 fprintf('...done\n');
 
 %% Similarity measure
@@ -190,15 +188,6 @@ W_complete = [WD_in WH_in];
 H_complete = [new_HD_in(:, 1 : size(HD_in,2)); HH_in];
 X_out = W_complete * H_complete;
 
-%
-
-% L=dgtlength(Ls,a,M);
-% reX = gla(X_out, {'blackman', param.windowSize}, param.hopSize, param.windowSize, 'timeinv', 'Ls', 81920);
-% 
-% audio_out = idgtreal(reX, {'blackman', param.windowSize}, param.hopSize, param.windowSize, 'timeinv');
-
-
-
 %% Process phase
 regionsAndIdx = findOnsetRegions(abs(X_in), X_out, phaseX_in, onsets_new_frames, onsets_old_frames, param);
 
@@ -210,9 +199,8 @@ X_complex = phaseProcessingNewBin(X_out, phaseX_in, param, regionsAndIdx, onsets
 
 %% 
 
-% phaseX_out = pghi(X_out, param.windowSize, param.hopSize, param.windowSize);
 audio_out_bin = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
- 
+
 X_complex = phaseProcessingNewFrame(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, WD_in);
 
 audio_out_frame = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
@@ -225,8 +213,6 @@ audio_out = istft(X_complex, param.windowSize, param.windowSize, param.hopSize);
 
 % audio_out = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
-% audio_out = myInverseFFT(X_complex, param.windowSize, param.hopSize);
-% audio_out = ygab;
 fprintf('...done\n');
 
 file_outpath = '../Audio_files/outputs/';
