@@ -212,12 +212,15 @@ X_complex = X_out.*exp(1i*phaseX_out);
 audio_out = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
 fprintf('...done\n');
-
-file_outpath = '../Audio_files/outputs/';
-filename = strcat(window,'example.wav');
+%%
+file_outpath = '../Audio_files/4_12/DiffInputAndTarget/';
+filename = strcat('KCSnareOutput.wav');
 fs_out = fs_in;
-audio_out = audio_out ./ max(abs(audio_out));
-% audiowrite(strcat(file_outpath,filename), audio_out, fs_out);
+audio_write = audio_out;
+
+audio_write = audio_write ./ max(abs(audio_write));
+audio_write = [audio_write ;audio_write ;audio_write ;audio_write];
+% audiowrite(strcat(file_outpath,filename), audio_write, fs_out);
 % soundsc(audio_out, fs_out);
 
 %% Plotting section
