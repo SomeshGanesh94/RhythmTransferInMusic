@@ -39,7 +39,7 @@ fprintf('...done\n');
 
 % NOTE: Input to toolbox function is the file path, not the audio
 addpath('../NmfDrumToolbox-master/src/');
- 
+
 %% Initialization: Loading param structure and other parameters and selecting NMF method
 load DefaultSetting.mat
 % method = 'Nmf';
@@ -195,9 +195,7 @@ regionsAndIdx = findOnsetRegions(abs(X_in), X_out, phaseX_in, onsets_new_frames,
 % 
 % audio_out_plain = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
-X_complex = phaseProcessingNewBin(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, WD_in);
-
-%% 
+X_complex = phaseProcessingNewBin(X_out, phaseX_in, param, regionsAndIdx, onsets_new_frames, onsets_old_frames, HD_in, HH_in, WD_in, WH_in);
 
 audio_out_bin = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
@@ -209,9 +207,9 @@ phaseX_out = phaseX_in;
 
 X_complex = X_out.*exp(1i*phaseX_out);
 
-audio_out = istft(X_complex, param.windowSize, param.windowSize, param.hopSize);
+% audio_out = istft(X_complex, param.windowSize, param.windowSize, param.hopSize);
 
-% audio_out = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
+audio_out = idgtreal(X_complex, {'dual', {window, param.windowSize}}, param.hopSize, param.windowSize, len_X, 'timeinv');
 
 fprintf('...done\n');
 
