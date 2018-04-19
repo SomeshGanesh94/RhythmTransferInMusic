@@ -157,7 +157,7 @@ for region = 1 : size(new_region_idx_cell, 1)
 
     start_idx = new_region_idx_cell{region}(1);
     end_idx = new_region_idx_cell{region}(2);
-    new_region_cell{region} = X_in(:, start_idx:end_idx);
+    new_region_cell{region} = X_out(:, start_idx:end_idx);
     
 end
 
