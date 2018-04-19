@@ -58,7 +58,7 @@ num_of_instr = 3;
 window = 'blackman';
 
 % Hard thresholding factor
-thresh_factor = 0.5;
+thresh_factor = 0.8;
 
 %% INPUT RHYTHM: Selecting NMF computation based on given method
 
@@ -138,7 +138,9 @@ fprintf('...done\n');
 %% Hard thresholding and normalization for a more robust onset detection
 
 fprintf('Performing hard thresholding and normalizing with threshold factor %f', thresh_factor);
-[temp_HD_in, temp_HD_tar] = hardThresholdAndNorm(HD_in, HD_tar, thresh_factor);
+% [temp_HD_in, temp_HD_tar] = hardThresholdAndNorm(HD_in, HD_tar, thresh_factor);
+temp_HD_in = HD_in;
+temp_HD_tar = HD_tar;
 fprintf('...done\n');
 
 %% Onset detection and quantization
