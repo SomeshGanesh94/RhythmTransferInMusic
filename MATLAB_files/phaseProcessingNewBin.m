@@ -65,7 +65,6 @@ for frame_no = 1 : size(X,2)
                     if ismember(frame_no, onset_cell{new_onsets})
                        
                         new_onset_loc = find(onset_cell{new_onsets} == frame_no);
-%                         fprintf('%d %d %d %d %d \n', frame_no, bin_no, instr, new_onsets, new_onset_loc);
                         new_frame_no = onsets_old_frames{instr}{new_onsets}(new_onset_loc);
                         dspec_value(instr) = WD_in(bin_no, instr) * HD_in(instr, new_frame_no);
                         
@@ -76,15 +75,16 @@ for frame_no = 1 : size(X,2)
             end
             
             spec_max_instr = find(dspec_value == max(dspec_value));
-            %%
+            
             for instr = 1 : size(HH_in, 1)
                 hspec_value(instr) = WH_in(bin_no, instr) * HH_in(instr, frame_no);
             end
             hspec_max_instr = find(hspec_value == max(hspec_value));
+            hSpec = sum(hspec_value);
             
             if isempty(hspec_value)
                 flag = 1;
-            elseif max(dspec_value) > max(hspec_value)
+            elseif max(dspec_value) > hSpec
                 flag = 1;
             else
                 flag = 0;
@@ -99,8 +99,6 @@ for frame_no = 1 : size(X,2)
 
                         new_onset_loc = find(onset_cell{new_onsets} == frame_no);
                         new_to_old_index = [frame_no,bin_no,spec_max_instr,new_onsets,new_onset_loc];
-
-                        new_frame_no = onsets_old_frames{spec_max_instr}{new_onsets}(new_onset_loc);
 
                         if new_frame_no == 1
                             if bin_no == 1
@@ -130,7 +128,6 @@ for frame_no = 1 : size(X,2)
         end
         
         X_complex(:, frame_no) = X(:, frame_no).*(exp(1i*new_phase_value));
-%         X_complex(:, frame_no) = 0;
         
     end
     
